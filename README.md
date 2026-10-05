@@ -1,26 +1,19 @@
-# SustainKieker Hackathon: Reverse Engineering of Research Software
-
-🗓️ Thu 27/02, 13:30
-<br>📍 Room SR 206, Building 30.70, Campus South (KIT)
-<br>ℹ️ [Abstract](https://events.hifis.net/event/1741/contributions/14031/)
-<br>🔬 [The Kieker Observability Framework](https://kieker-monitoring.net)
-<br>🌐 [The SustainKieker Project Homepage](https://sustainkieker.kieker-monitoring.net)
+# Kieker Trace Analysis PlantUML Pipeline Demo
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-1. [Prerequisites](#prerequisites)
-   * [Linux system](#linux-system)
-   * [Software](#software)
-1. [Instructions](#instructions)
-1. [Run the Kieker Trace Analysis](#run-the-kieker-trace-analysis)
-1. [More reads](#more-reads)
+1. Introduction
+1. Prerequisites
+   * Linux system
+   * Software
+1. Instructions
+1. Run the Kieker Trace Analysis
 
 ## Introduction
 
 [Kieker observability framework](https://kieker-monitoring.net/) features monitoring and analysis capabilities.
 OpenTelemetry, in comparison, provides means to monitor the program but analysis. Our new [Otkt DSL](https://github.com/kieker-monitoring/OtktDSL) can define a mapping from an OpenTelemetry Span to a Kieker record.
-Using Otkt, we show how we can use OpenTelemetry to collect monitoring data from a Python program and send it to a Kieker Analysis endpoint.
+Using Otkt, we show how we can use OpenTelemetry to collect monitoring data from a Python program and send it to a Kieker Analysis endpoint. Further, with the use of the Kieker Trace Analysis PlantUML pipeline implementation, we are capable of generating diagrams out of the monitored data. With the help of our library kieker-for-jupyter, we can display the diagrams directly within the Jupyter Notebook. In addition, both the java implementation of Trace Analysis and the python package implementation of this library support Py4J.
 
 ## Prerequisites
 
@@ -91,7 +84,7 @@ docker run -p 8888:8888 kieker/sustainkieker-hackathon
 
 1. Build the Otkt collector.
    ```bash
-   # Run inside the hackathon repository:
+   # Run inside the demo repository:
    cd collector
    mvn clean package
    ```
@@ -100,7 +93,7 @@ docker run -p 8888:8888 kieker/sustainkieker-hackathon
    directory.
 
    ```bash
-   export PYTHONPATH=/path/to/hackathon-repo/python:$PYTHONPATH
+   export PYTHONPATH=/path/to/demo-repo/python:$PYTHONPATH
    ```
 
 1. Instrument the entry point with the following python import.
@@ -113,7 +106,7 @@ docker run -p 8888:8888 kieker/sustainkieker-hackathon
 
    ```bash
    # Run inside the target software repository:
-   /path/to/hackathon-repo/tools/instrument-py.sh
+   /path/to/demo-repo/tools/instrument-py.sh
    ```
 
    * It is important to adhere to the indentation of each method definitions.
@@ -145,77 +138,42 @@ docker run -p 8888:8888 kieker/sustainkieker-hackathon
 
    * Prepare Trace Analysis
      ```bash
-     # Run inside the hackathon repository
-     unzip tools/trace-analysis-2.0.2.zip
+     # Run inside the demo repository
+     unzip tools/trace-analysis-2.0.3-py4j.zip
      ```
 
    * Aggregated Deployment Call Tree
      ```bash
-     # Run inside the hackathon repository
+     # Run inside the demo repository
      mkdir output-adctree
-     trace-analysis-2.0.2/bin/trace-analysis  \
-       --inputdirs /path/to/kieker-logs       \
-       --outputdir output-adctree             \
-       --plot-Aggregated-Deployment-Call-Tree
-     cd output-adctree
-     dot aggregatedDeploymentCallTree.dot -T pdf -o output.pdf
+     trace-analysis-2.0.3-SNAPSHOT/bin/trace-analysis \
+       --inputdirs /path/to/kieker-logs               \
+       --outputdir output-adctree                     \
+       --plot-Aggregated-Deployment-Call-Tree         \
+       --graphics-engine PLANTUML                     \
+       --pdf
      ```
 
    * Deployment Component Dependency Graph
      ```bash
-     # Run inside the hackathon repository
+     # Run inside the demo repository
      mkdir output-dcdgraph
-     trace-analysis-2.0.2/bin/trace-analysis             \
+     trace-analysis-2.0.3-SNAPSHOT/bin/trace-analysis    \
        --inputdirs /path/to/kieker-logs                  \
-       --outputdir output-dcdgraph
-       --plot-Deployment-Component-Dependency-Graph none
-     cd output-dcdgraph
-     dot deploymentComponentDependencyGraph.dot -T pdf -o output.pdf
+       --outputdir output-dcdgraph                       \
+       --plot-Deployment-Component-Dependency-Graph none \
+       --graphics-engine PLANTUML                        \
+       --pdf
      ```
 
    * Deployment Sequence Diagrams
      ```bash
-     # Run inside the hackathon repository
+     # Run inside the demo repository
      mkdir output-dsdiagrams
-     trace-analysis-2.0.2/bin/trace-analysis             \
-       --inputdirs /path/to/kieker-logs                  \
-       --outputdir output-dsdiagrams
-       --plot-Deployment-Sequence-Diagrams
-     cd output-dsdiagrams
-     pic2plot -T ps deploymentSequenceDiagram-1.pic > output.ps
-     ps2pdf outout.ps output.pdf
+     trace-analysis-2.0.3-SNAPSHOT/bin/trace-analysis \
+       --inputdirs /path/to/kieker-logs               \
+       --outputdir output-dsdiagrams                  \
+       --plot-Deployment-Sequence-Diagrams            \
+       --graphics-engine PLANTUML                     \
+       --pdf
      ```
-
-## More Reads
-1. The Otkt collector stores all received records under `/tmp`. E.g.,
-
-   ```
-   /tmp/kieker-20250217-181132-41826294550971-UTC--KIEKER/
-   /tmp/kieker-20250218-093839-12420615078112-UTC--KIEKER/
-   /tmp/kieker-20250218-114626-20087904425947-UTC--KIEKER/
-   ```
-
-   You can change the location by changing the value for
-   `kieker.monitoring.writer.filesystem.FileWriter.customStoragePath` in
-   [res/config.txt](res/config.txt).
-
-1. Packaging a python software
-
-   Instrumenting a Python software may require downloading the source code and
-building a package. In this case, follow the instruction below and repackage it
-yourself. It could be as simple as running `python3 -m build`. Otherwise, you
-need to follow the provided build instruction.
-
-   ```bash
-   # Instrument the target software before running the below commands
-   pip install build
-   python3 -m build
-   ```
-
-1. Building an Otkt program
-
-   For the Hackathon, we provide all artifacts from the Otkt build of the Otkt source code [demo.otkt](examples/demo.otkt). For more details, refer to [BUILD.md](BUILD.md).
-
-1. Building the Otkt compiler
-
-   The Otkt compiler is maintained in the GitHub repository [OtktDSL](https://github.com/kieker-monitoring/OtktDSL). The instruction will be uploaded soon.
