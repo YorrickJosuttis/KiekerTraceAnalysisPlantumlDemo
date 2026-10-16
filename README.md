@@ -18,11 +18,13 @@ Using Otkt, we show how we can use OpenTelemetry to collect monitoring data from
 ## Prerequisites
 
 ### Jupyter Notebook
-* We encourage partiicpants to use the provided Jupyter Notebook docker, which runs on Ubuntu 24.04.
+* We encourage to use the provided docker file (KiekerTraceAnalysisPlantumlDemo\docker\Dockerfile) to create the image and run a container using this image. Notice, to create the image, you will need to be located in the directory `KiekerTraceAnalysisPlantumlDemo\docker\` of the dockerfile and then run a container using
 
 ```bash
-docker run -p 8888:8888 kieker/sustainkieker-hackathon
+docker run -p 8888:8888 --name some-container-name some-image-name
 ```
+
+* The Jupyter Notebook `README.ipynb` is then located within this container, which contains instructions to run the demo. 
 
 ### Linux system
    
